@@ -1,6 +1,5 @@
 import "./styles.css";
 import Game from "./components/Game";
-import TrainPage from "./train";
 
 export default function App() {
   return (
