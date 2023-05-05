@@ -6,6 +6,7 @@ import { useDropTime } from "../hooks/useDropTime";
 import { useInterval } from "../hooks/useInterval";
 import * as speech from "@tensorflow-models/speech-commands";
 import * as tf from "@tensorflow/tfjs";
+import "./Commands.css"
 
 const GameController = ({
   board,
@@ -59,9 +60,10 @@ const GameController = ({
 
   const [voiceRecognizer, setVoiceRecognizer] = useState(null);
   const [currentVoiceCommand, setCurrentVoiceCommand] = useState(null);
+  const [previousVoiceCommand, setPreviousVoiceCommand] = useState(null);
 
   const setupSpeechRecognition = async () => {
-    const recognizer = speech.create("BROWSER_FFT");
+    const recognizer = speech.create("BROWSER_FFT", 'directional4w');
     await recognizer.ensureModelLoaded();
     recognizer.listen(
       (result) => {
@@ -70,7 +72,7 @@ const GameController = ({
           labels[result.scores.indexOf(Math.max(...result.scores))];
         setCurrentVoiceCommand(command);
       },
-      { overlapFactor: 0.3 ,includeSpectrogram: true, probabilityThreshold: 0.8 }
+      { overlapFactor: 0.25 ,includeSpectrogram: true, probabilityThreshold: 0.9 }
     );
     setVoiceRecognizer(recognizer);
   };
@@ -98,23 +100,28 @@ const GameController = ({
       handleInput({ action });
       if (actionIsDrop(action)) resumeDropTime();
     }
+    
   };
 
   useEffect(() => {
     console.log("currentVoiceCommand", currentVoiceCommand);
     if (!currentVoiceCommand) return;
     handleVoiceCommand(currentVoiceCommand);
+    setPreviousVoiceCommand(currentVoiceCommand);
     setCurrentVoiceCommand(null);
   }, [currentVoiceCommand]);
 
   return (
-    <input
-      className="GameController"
-      type="text"
-      onKeyDown={onKeyDown}
-      onKeyUp={onKeyUp}
-      autoFocus
-    />
+    <div style={{display:'flex', flexDirection:'row'}}>
+      <div className="Commands">{previousVoiceCommand}</div>
+      <input
+        className="GameController"
+        type="text"
+        onKeyDown={onKeyDown}
+        onKeyUp={onKeyUp}
+        autoFocus
+      />
+    </div>
   );
 };
 
